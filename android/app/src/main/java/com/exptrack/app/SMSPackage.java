@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class SMSListenerPackage implements ReactPackage {
+public class SMSPackage implements ReactPackage {
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
         return Collections.emptyList();
@@ -21,4 +21,4 @@ public class SMSListenerPackage implements ReactPackage {
         modules.add(new SMSListenerModule(reactContext));
         return modules;
     }
-}
+} 

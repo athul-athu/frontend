@@ -24,5 +24,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- SMS Broadcast Receiver -->
+        <receiver 
+            android:name=".SMSBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter android:priority="999">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

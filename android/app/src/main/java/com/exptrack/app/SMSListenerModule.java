@@ -1,11 +1,6 @@
 package com.exptrack.app;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.provider.Telephony;
-import android.telephony.SmsMessage;
 import android.util.Log;
 
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -16,71 +11,18 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 public class SMSListenerModule extends ReactContextBaseJavaModule {
-    private final ReactApplicationContext reactContext;
-    private BroadcastReceiver smsReceiver;
-    private static final String TAG = "SMSListenerModule";
+    private static final String TAG = "ExpTrack_SMSModule";
+    private static ReactApplicationContext reactContext;
 
-    public SMSListenerModule(ReactApplicationContext reactContext) {
-        super(reactContext);
-        this.reactContext = reactContext;
-        registerSMSReceiver();
+    public SMSListenerModule(ReactApplicationContext context) {
+        super(context);
+        reactContext = context;
+        Log.d(TAG, "SMSListenerModule initialized");
     }
 
     @Override
     public String getName() {
         return "AndroidSMSListener";
-    }
-
-    private void registerSMSReceiver() {
-        smsReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d(TAG, "SMS received in emulator");
-                
-                if (intent.getAction().equals(Telephony.Sms.Intents.SMS_RECEIVED_ACTION) ||
-                    intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")) {
-                    
-                    Object[] pdus = (Object[]) intent.getExtras().get("pdus");
-                    String format = intent.getExtras().getString("format");
-                    
-                    if (pdus != null) {
-                        for (Object pdu : pdus) {
-                            SmsMessage smsMessage;
-                            if (format != null) {
-                                smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
-                            } else {
-                                smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
-                            }
-                            
-                            String messageBody = smsMessage.getMessageBody();
-                            Log.d(TAG, "Message received: " + messageBody);
-                            
-                            // Check if it's a UPI message - making it more lenient for testing
-                            if (messageBody.contains("UPI") || messageBody.contains("debited") || 
-                                messageBody.contains("credited") || messageBody.contains("A/C")) {
-                                WritableMap params = Arguments.createMap();
-                                params.putString("message", messageBody);
-                                params.putString("sender", smsMessage.getOriginatingAddress());
-                                sendEvent("onSMSReceived", params);
-                                Log.d(TAG, "UPI message detected and sent to JS");
-                            }
-                        }
-                    }
-                }
-            }
-        };
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
-        filter.addAction("android.provider.Telephony.SMS_RECEIVED");
-        filter.setPriority(999); // High priority to receive before other apps
-        
-        try {
-            reactContext.registerReceiver(smsReceiver, filter);
-            Log.d(TAG, "SMS receiver registered successfully");
-        } catch (Exception e) {
-            Log.e(TAG, "Error registering SMS receiver: " + e.getMessage());
-        }
     }
 
     @ReactMethod
@@ -95,28 +37,27 @@ public class SMSListenerModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "Removed listeners");
     }
 
-    private void sendEvent(String eventName, WritableMap params) {
-        try {
-            reactContext
-                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit(eventName, params);
-            Log.d(TAG, "Event sent to JS: " + eventName);
-        } catch (Exception e) {
-            Log.e(TAG, "Error sending event to JS: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void onCatalystInstanceDestroy() {
-        super.onCatalystInstanceDestroy();
-        if (smsReceiver != null) {
+    // Static method to be called from BroadcastReceiver
+    public static void emitMessageReceived(Context context, String message) {
+        Log.d(TAG, "Attempting to emit message to React Native");
+        Log.d(TAG, "Message content: " + message);
+        
+        if (reactContext != null) {
             try {
-                reactContext.unregisterReceiver(smsReceiver);
-                Log.d(TAG, "SMS receiver unregistered successfully");
+                WritableMap params = Arguments.createMap();
+                params.putString("message", message);
+                
+                reactContext
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit("onSMSReceived", params);
+                
+                Log.i(TAG, "Successfully emitted message to React Native");
             } catch (Exception e) {
-                Log.e(TAG, "Error unregistering SMS receiver: " + e.getMessage());
+                Log.e(TAG, "Error emitting message to React Native: " + e.getMessage());
+                e.printStackTrace();
             }
-            smsReceiver = null;
+        } else {
+            Log.e(TAG, "React context is null, cannot emit message. Context might not be initialized.");
         }
     }
 } 

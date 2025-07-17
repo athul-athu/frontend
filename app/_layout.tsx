@@ -5,6 +5,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { PaperProvider } from 'react-native-paper';
 
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -21,7 +22,7 @@ export const unstable_settings = {
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+export default function Layout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
@@ -42,7 +43,18 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <PaperProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="login" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="(tabs)" options={{ gestureEnabled: false }} />
+      </Stack>
+    </PaperProvider>
+  );
 }
 
 function RootLayoutNav() {

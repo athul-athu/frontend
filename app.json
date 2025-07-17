@@ -1,32 +1,47 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "ExpTrack",
+    "slug": "exp-track",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.exptrack.app",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "This app needs to access SMS to automatically track your expenses from transaction messages.",
+        "NSLocationWhenInUseUsageDescription": "This app needs to access your location for nearby transactions.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs to access your location for nearby transactions.",
+        "NSLocationAlwaysUsageDescription": "This app needs to access your location for nearby transactions."
+      },
+      "associatedDomains": ["applinks:exptrack.app"],
+      "config": {
+        "messageFilterExtension": {
+          "name": "MessageFilterExtension",
+          "bundleIdentifier": "com.exptrack.app.MessageFilter"
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "package": "com.exptrack.app",
+      "permissions": [
+        "RECEIVE_SMS",
+        "READ_SMS"
+      ]
     },
     "plugins": [
       "expo-router"

@@ -1,0 +1,65 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+  // =================================================================
+  // >>>>> FIX STARTS HERE <<<<<
+  // =================================================================
+  ext {
+    // This line forces the project to use a specific, stable NDK version
+    // that is compatible with React Native and Reanimated's C++ code.
+    // This is the definitive fix for the "undefined symbol" C++ linker errors.
+     ndkVersion = "26.1.10909125"
+  }
+  // =================================================================
+  // >>>>> FIX ENDS HERE <<<<<
+  // =================================================================
+
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
+    // Make sure these versions are compatible with your project.
+    // Expo and React Native plugins often manage these versions.
+    classpath('com.android.tools.build:gradle:8.3.1')
+    classpath('com.facebook.react:react-native-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.23')
+  }
+}
+
+def reactNativeAndroidDir = new File(
+  providers.exec {
+    workingDir(rootDir)
+    commandLine("node", "--print", "require.resolve('react-native/package.json')")
+  }.standardOutput.asText.get().trim(),
+  "../android"
+)
+
+allprojects {
+  repositories {
+    maven {
+      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+      url(reactNativeAndroidDir)
+    }
+
+    google()
+    mavenCentral()
+    maven { url 'https://www.jitpack.io' }
+  }
+}
+
+// This block ensures all sub-projects use the Java 17 toolchain.
+// This version is more robust and uses the standard 'kotlin' extension
+// to avoid the previous 'Extension does not exist' error.
+subprojects {
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin("kotlin-android")) {
+            project.kotlin {
+                jvmToolchain(17)
+            }
+        }
+    }
+}
+
+apply plugin: "expo-root-project"
+apply plugin: "com.facebook.react.rootproject"

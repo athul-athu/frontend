@@ -56,22 +56,12 @@ export default function ProfileScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Profile Header */}
           <View style={styles.header}>
-            <View style={styles.avatarContainer}>
-              <TouchableOpacity onPress={animateAvatar}>
-                <Animated.View style={[styles.avatarWrapper, { transform: [{ scale: avatarScale }] }]}>
-                  <Avatar.Text
-                    size={120}
-                    label={getInitials(userData?.name || 'User')}
-                    style={styles.avatar}
-                    labelStyle={styles.avatarLabel}
-                  />
-                </Animated.View>
-              </TouchableOpacity>
+            <Surface style={styles.userInfoContainer}>
               <View style={styles.userInfo}>
                 <Text style={styles.name}>{userData?.name || 'User'}</Text>
                 <Text style={styles.phoneNumber}>{userData?.phoneNumber || ''}</Text>
               </View>
-            </View>
+            </Surface>
           </View>
 
           {/* Profile Options */}
@@ -185,36 +175,26 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 60,
     paddingBottom: 30,
-  },
-  avatarContainer: {
     alignItems: 'center',
   },
-  avatarWrapper: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 60,
-    padding: 3,
-  },
-  avatar: {
-    backgroundColor: KIWI_DARK,
-  },
-  avatarLabel: {
-    fontSize: 48,
-    color: '#ffffff',
+  userInfoContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 24,
+    width: '85%',
+    elevation: 4,
   },
   userInfo: {
     alignItems: 'center',
-    marginTop: 16,
   },
   name: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#ffffff',
-    marginTop: 16,
+    color: KIWI_DARK,
   },
   phoneNumber: {
     fontSize: 16,
-    color: '#ffffff',
-    opacity: 0.8,
+    color: '#4b5563',
     marginTop: 4,
   },
   menuContainer: {

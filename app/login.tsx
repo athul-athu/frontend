@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
-import { Text, TextInput, Button, Snackbar } from 'react-native-paper';
-import { useState } from 'react';
+import { Text, TextInput, Button, Snackbar, ActivityIndicator } from 'react-native-paper';
+import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { API } from '../config/constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,8 +23,29 @@ export default function LoginScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState('');
   const [snackbarVisible, setSnackbarVisible] = useState(false);
+
+  useEffect(() => {
+    checkExistingToken();
+  }, []);
+
+  const checkExistingToken = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const userData = await AsyncStorage.getItem('userData');
+      
+      if (token && userData) {
+        // Verify token validity here if needed
+        router.replace('/(tabs)/statistics');
+      }
+    } catch (error) {
+      console.error('Error checking token:', error);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
 
   const validateInputs = () => {
     if (!phoneNumber || phoneNumber.trim() === '') {
@@ -56,8 +77,6 @@ export default function LoginScreen() {
         password: password.trim()
       };
 
-      console.log('Sending request:', requestBody);
-
       const response = await fetch(API.LOGIN, {
         method: 'POST',
         headers: {
@@ -68,29 +87,21 @@ export default function LoginScreen() {
       });
 
       const data: LoginResponse = await response.json();
-      console.log('Response:', data);
 
-      // Check if the response status is success
-      if (data.status === 'success') {
-        // Store the token and user data
-        if (data.data?.token) {
-          await AsyncStorage.setItem('userToken', data.data.token);
-          
-          // Store user data
-          await AsyncStorage.setItem('userData', JSON.stringify({
-            userId: data.data.user_id,
-            name: data.data.name,
-            phoneNumber: data.data.phone_number,
-            age: data.data.age,
-            bankAccountName: data.data.bank_account_name,
-            profileImg: data.data.profile_img
-          }));
-        }
+      if (data.status === 'success' && data.data?.token) {
+        await AsyncStorage.setItem('userToken', data.data.token);
         
-        // Navigate to statistics screen on success
+        await AsyncStorage.setItem('userData', JSON.stringify({
+          userId: data.data.user_id,
+          name: data.data.name,
+          phoneNumber: data.data.phone_number,
+          age: data.data.age,
+          bankAccountName: data.data.bank_account_name,
+          profileImg: data.data.profile_img
+        }));
+        
         router.replace('/(tabs)/statistics');
       } else {
-        // Show error message from API if login was not successful
         throw new Error(data.message || 'Login failed. Please check your credentials.');
       }
     } catch (err: any) {
@@ -116,6 +127,14 @@ export default function LoginScreen() {
       setError('');
     }
   };
+
+  if (initialLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#8CB369" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -205,13 +224,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
   },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   header: {
     marginTop: 60,
     marginBottom: 40,
     alignItems: 'center',
   },
   title: {
-    color: '#4C9A8A',
+    color: '#8CB369',
     marginBottom: 10,
     fontWeight: 'bold',
   },
@@ -228,7 +251,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginTop: 8,
-    backgroundColor: '#4C9A8A',
+    backgroundColor: '#8CB369',
   },
   loginButtonContent: {
     height: 48,

@@ -4,6 +4,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useState, useEffect, useCallback } from 'react';
 import { getTransactions } from '../../utils/network';
 import { format } from 'date-fns';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const KIWI_PRIMARY = '#8CB369';
+const KIWI_LIGHT = '#BED8A4';
+const KIWI_DARK = '#5B8E31';
 
 interface Transaction {
   id: number;
@@ -71,21 +76,6 @@ export default function TransactionScreen() {
     return type === 'INCOME' ? `+₹${value}` : `-₹${value}`;
   };
 
-  const getTransactionIcon = (category: string | null) => {
-    switch (category?.toLowerCase()) {
-      case 'food':
-        return 'restaurant';
-      case 'transport':
-        return 'directions-car';
-      case 'shopping':
-        return 'shopping-bag';
-      case 'entertainment':
-        return 'movie';
-      default:
-        return 'account-balance-wallet';
-    }
-  };
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
@@ -104,88 +94,91 @@ export default function TransactionScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4C9A8A" />
+        <ActivityIndicator size="large" color={KIWI_PRIMARY} />
       </View>
     );
   }
 
   return (
-    <ScrollView 
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
-      <View style={styles.header}>
-        <Text variant="headlineMedium" style={styles.title}>Transactions</Text>
-      </View>
-
-      {error ? (
-        <Card style={styles.errorCard}>
-          <Card.Content>
-            <Text variant="bodyMedium" style={styles.errorText}>{error}</Text>
-          </Card.Content>
-        </Card>
-      ) : (
-        <>
-          <Card style={styles.balanceCard}>
-            <Card.Content>
-              <Text variant="titleMedium">Total Balance</Text>
-              <Text variant="headlineLarge" style={styles.balance}>
-                ₹{totals.balance.toFixed(2)}
-              </Text>
-              <View style={styles.incomeExpense}>
-                <View style={styles.incomeBox}>
-                  <MaterialIcons name="arrow-upward" size={24} color="#4C9A8A" />
-                  <Text variant="titleSmall">Income</Text>
-                  <Text variant="titleMedium" style={styles.income}>
-                    ₹{totals.income.toFixed(2)}
-                  </Text>
-                </View>
-                <View style={styles.expenseBox}>
-                  <MaterialIcons name="arrow-downward" size={24} color="#FF5C5C" />
-                  <Text variant="titleSmall">Expenses</Text>
-                  <Text variant="titleMedium" style={styles.expense}>
-                    ₹{totals.expense.toFixed(2)}
-                  </Text>
-                </View>
-              </View>
-            </Card.Content>
-          </Card>
-
-          <View style={styles.transactionList}>
-            <Text variant="titleMedium" style={styles.sectionTitle}>Recent Transactions</Text>
-            {transactions.map((transaction) => (
-              <List.Item
-                key={transaction.id}
-                title={transaction.description}
-                description={formatDate(transaction.date)}
-                left={() => (
-                  <View style={styles.iconContainer}>
-                    <MaterialIcons
-                      name={getTransactionIcon(transaction.category)}
-                      size={24}
-                      color="#4C9A8A"
-                    />
-                  </View>
-                )}
-                right={() => (
-                  <Text
-                    style={[
-                      styles.amount,
-                      { color: transaction.transaction_type === 'INCOME' ? '#4C9A8A' : '#FF5C5C' }
-                    ]}
-                  >
-                    {formatAmount(transaction.amount, transaction.transaction_type)}
-                  </Text>
-                )}
-                style={styles.transactionItem}
-              />
-            ))}
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[KIWI_DARK, KIWI_PRIMARY, KIWI_LIGHT]}
+        style={styles.gradient}
+      >
+        <ScrollView 
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <View style={styles.header}>
+            <Text variant="headlineMedium" style={styles.title}>Transactions</Text>
           </View>
-        </>
-      )}
-    </ScrollView>
+
+          {error ? (
+            <Card style={styles.errorCard}>
+              <Card.Content>
+                <Text variant="bodyMedium" style={styles.errorText}>{error}</Text>
+              </Card.Content>
+            </Card>
+          ) : (
+            <>
+              <Card style={styles.balanceCard}>
+                <LinearGradient
+                  colors={[KIWI_DARK, KIWI_PRIMARY]}
+                  style={styles.balanceGradient}
+                >
+                  <Card.Content>
+                    <Text variant="titleMedium" style={styles.balanceTitle}>Total Balance</Text>
+                    <Text variant="headlineLarge" style={styles.balance}>
+                      ₹{totals.balance.toFixed(2)}
+                    </Text>
+                    <View style={styles.incomeExpense}>
+                      <View style={styles.incomeBox}>
+                        <MaterialIcons name="arrow-upward" size={24} color="#22c55e" />
+                        <Text variant="titleSmall" style={styles.incomeTitle}>Income</Text>
+                        <Text variant="titleMedium" style={styles.income}>
+                          ₹{totals.income.toFixed(2)}
+                        </Text>
+                      </View>
+                      <View style={styles.expenseBox}>
+                        <MaterialIcons name="arrow-downward" size={24} color="#ef4444" />
+                        <Text variant="titleSmall" style={styles.expenseTitle}>Expenses</Text>
+                        <Text variant="titleMedium" style={styles.expense}>
+                          ₹{totals.expense.toFixed(2)}
+                        </Text>
+                      </View>
+                    </View>
+                  </Card.Content>
+                </LinearGradient>
+              </Card>
+
+              <View style={styles.transactionList}>
+                <Text variant="titleMedium" style={styles.sectionTitle}>Recent Transactions</Text>
+                {transactions.map((transaction) => (
+                  <List.Item
+                    key={transaction.id}
+                    title={transaction.description}
+                    description={formatDate(transaction.date)}
+                    right={() => (
+                      <Text
+                        style={[
+                          styles.amount,
+                          { color: transaction.transaction_type === 'INCOME' ? '#22c55e' : '#ef4444' }
+                        ]}
+                      >
+                        {formatAmount(transaction.amount, transaction.transaction_type)}
+                      </Text>
+                    )}
+                    style={styles.transactionItem}
+                  />
+                ))}
+              </View>
+            </>
+          )}
+        </ScrollView>
+      </LinearGradient>
+    </View>
   );
 }
 
@@ -198,28 +191,43 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+  },
+  gradient: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
     padding: 20,
     paddingTop: 60,
-    backgroundColor: '#fff',
   },
   title: {
     fontWeight: 'bold',
+    color: '#ffffff',
   },
   balanceCard: {
     margin: 16,
+    overflow: 'hidden',
+    backgroundColor: 'transparent',
+  },
+  balanceGradient: {
+    borderRadius: 12,
+    padding: 8,
+  },
+  balanceTitle: {
+    color: '#ffffff',
+    opacity: 0.9,
   },
   errorCard: {
     margin: 16,
-    backgroundColor: '#FFE5E5',
+    backgroundColor: '#fee2e2',
   },
   errorText: {
-    color: '#FF5C5C',
+    color: '#ef4444',
   },
   balance: {
-    color: '#4C9A8A',
+    color: '#ffffff',
     fontWeight: 'bold',
     marginVertical: 8,
   },
@@ -234,12 +242,22 @@ const styles = StyleSheet.create({
   expenseBox: {
     alignItems: 'flex-start',
   },
+  incomeTitle: {
+    color: '#ffffff',
+    opacity: 0.9,
+    marginTop: 4,
+  },
+  expenseTitle: {
+    color: '#ffffff',
+    opacity: 0.9,
+    marginTop: 4,
+  },
   income: {
-    color: '#4C9A8A',
+    color: 'black',
     marginTop: 4,
   },
   expense: {
-    color: '#FF5C5C',
+    color: '#ef4444',
     marginTop: 4,
   },
   transactionList: {
@@ -248,17 +266,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: 16,
     fontWeight: 'bold',
+    color: '#ffffff',
   },
   transactionItem: {
-    backgroundColor: '#fff',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     marginBottom: 8,
     borderRadius: 8,
-  },
-  iconContainer: {
-    backgroundColor: '#E8F5F3',
-    padding: 8,
-    borderRadius: 8,
-    marginRight: 8,
   },
   amount: {
     fontWeight: 'bold',

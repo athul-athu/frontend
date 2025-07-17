@@ -1,9 +1,14 @@
-import { StyleSheet, View, ScrollView, Animated, TouchableOpacity } from 'react-native';
-import { Text, Avatar, List, Portal, Modal, Button } from 'react-native-paper';
+import { StyleSheet, View, ScrollView, Animated, TouchableOpacity, Dimensions } from 'react-native';
+import { Text, Avatar, List, Portal, Modal, Button, Surface } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRef, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const KIWI_PRIMARY = '#8CB369';
+const KIWI_LIGHT = '#BED8A4';
+const KIWI_DARK = '#5B8E31';
 
 export default function ProfileScreen() {
   const avatarScale = useRef(new Animated.Value(1)).current;
@@ -43,178 +48,246 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.headerBg}>
-        <View style={styles.headerCard}>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={animateAvatar}
-            style={{ alignItems: 'center' }}
-          >
-            <Animated.View style={{ transform: [{ scale: avatarScale }] }}>
-              {userData?.profileImg ? (
-                <Avatar.Image
-                  size={110}
-                  source={{ uri: userData.profileImg }}
-                  style={styles.avatar}
-                />
-              ) : (
-                <Avatar.Text
-                  size={110}
-                  label={getInitials(userData?.name || '')}
-                  style={styles.avatar}
-                />
-              )}
-            </Animated.View>
-          </TouchableOpacity>
-          <Text variant="headlineSmall" style={[styles.name,{color:'#4C9A8A'}]}>{userData?.name || 'User'}</Text>
-         
-          <View style={styles.infoRow}>
-            <MaterialIcons name="phone" size={22} color="#4C9A8A" style={styles.infoIcon} />
-            <Text style={styles.infoText}>{userData?.phoneNumber || 'No phone'}</Text>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[KIWI_DARK, KIWI_PRIMARY, KIWI_LIGHT]}
+        style={styles.gradient}
+      >
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Profile Header */}
+          <View style={styles.header}>
+            <View style={styles.avatarContainer}>
+              <TouchableOpacity onPress={animateAvatar}>
+                <Animated.View style={[styles.avatarWrapper, { transform: [{ scale: avatarScale }] }]}>
+                  <Avatar.Text
+                    size={120}
+                    label={getInitials(userData?.name || 'User')}
+                    style={styles.avatar}
+                    labelStyle={styles.avatarLabel}
+                  />
+                </Animated.View>
+              </TouchableOpacity>
+              <View style={styles.userInfo}>
+                <Text style={styles.name}>{userData?.name || 'User'}</Text>
+                <Text style={styles.phoneNumber}>{userData?.phoneNumber || ''}</Text>
+              </View>
+            </View>
           </View>
-        </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text variant="titleMedium" style={styles.sectionTitle}>Settings</Text>
-        <List.Item
-          title="Change Password"
-          left={() => <MaterialIcons name="security" size={24} color="#4C9A8A" />}
-          right={() => <MaterialIcons name="chevron-right" size={24} color="#666" />}
-          style={styles.menuItem}
-          onPress={() => setChangePasswordVisible(true)}
-        />
-        <List.Item
-          title="Help & Support"
-          left={() => <MaterialIcons name="help" size={24} color="#4C9A8A" />}
-          right={() => <MaterialIcons name="chevron-right" size={24} color="#666" />}
-          style={styles.menuItem}
-          onPress={() => {}}
-        />
-        <List.Item
-          title="About"
-          left={() => <MaterialIcons name="info" size={24} color="#4C9A8A" />}
-          right={() => <MaterialIcons name="chevron-right" size={24} color="#666" />}
-          style={styles.menuItem}
-          onPress={() => {}}
-        />
-      </View>
-      <List.Item
-        title="Sign Out"
-        left={() => <MaterialIcons name="logout" size={24} color="#FF5C5C" />}
-        style={[styles.menuItem, styles.signOutButton]}
-        titleStyle={styles.signOutText}
-        onPress={() => setSignOutVisible(true)}
-      />
+          {/* Profile Options */}
+          <Surface style={styles.menuContainer}>
+            <View style={styles.menuSection}>
+              <Text style={styles.sectionTitle}>Account Settings</Text>
+              <List.Item
+                title="Edit Profile"
+                description="Update your personal information"
+                left={props => <MaterialIcons name="person" size={24} color={KIWI_PRIMARY} style={styles.menuIcon} />}
+                right={props => <MaterialIcons name="chevron-right" size={24} color="#94a3b8" />}
+                titleStyle={styles.menuTitle}
+                descriptionStyle={styles.menuDescription}
+                style={styles.menuItem}
+                onPress={() => {}}
+              />
+              <List.Item
+                title="Change Password"
+                description="Update your security credentials"
+                left={props => <MaterialIcons name="lock" size={24} color={KIWI_PRIMARY} style={styles.menuIcon} />}
+                right={props => <MaterialIcons name="chevron-right" size={24} color="#94a3b8" />}
+                titleStyle={styles.menuTitle}
+                descriptionStyle={styles.menuDescription}
+                style={styles.menuItem}
+                onPress={() => setChangePasswordVisible(true)}
+              />
+            </View>
 
-      <Portal>
-        <Modal
-          visible={signOutVisible}
-          onDismiss={() => setSignOutVisible(false)}
-          contentContainerStyle={styles.modal}
-        >
-          <Text variant="titleMedium" style={{ marginBottom: 16 }}>Are you sure you want to sign out?</Text>
-          <Button mode="contained" onPress={() => setSignOutVisible(false)} style={styles.modalButton}>
-            Cancel
-          </Button>
-          <Button mode="outlined" onPress={handleSignOut} style={styles.modalButton} textColor="#FF5C5C">
-            Sign Out
-          </Button>
-        </Modal>
-        <Modal
-          visible={changePasswordVisible}
-          onDismiss={() => setChangePasswordVisible(false)}
-          contentContainerStyle={styles.modal}
-        >
-          <Text variant="titleMedium" style={{ marginBottom: 16 }}>Change Password</Text>
-          <Text variant="bodyLarge">Password change functionality coming soon.</Text>
-          <Button mode="contained" onPress={() => setChangePasswordVisible(false)} style={styles.modalButton}>
-            Close
-          </Button>
-        </Modal>
-      </Portal>
-    </ScrollView>
+            <View style={styles.menuSection}>
+              <Text style={styles.sectionTitle}>Preferences</Text>
+              <List.Item
+                title="Notifications"
+                description="Manage your alert settings"
+                left={props => <MaterialIcons name="notifications" size={24} color={KIWI_PRIMARY} style={styles.menuIcon} />}
+                right={props => <MaterialIcons name="chevron-right" size={24} color="#94a3b8" />}
+                titleStyle={styles.menuTitle}
+                descriptionStyle={styles.menuDescription}
+                style={styles.menuItem}
+                onPress={() => {}}
+              />
+              <List.Item
+                title="Privacy Policy"
+                description="Read our terms and conditions"
+                left={props => <MaterialIcons name="privacy-tip" size={24} color={KIWI_PRIMARY} style={styles.menuIcon} />}
+                right={props => <MaterialIcons name="chevron-right" size={24} color="#94a3b8" />}
+                titleStyle={styles.menuTitle}
+                descriptionStyle={styles.menuDescription}
+                style={styles.menuItem}
+                onPress={() => {}}
+              />
+            </View>
+
+            <View style={styles.menuSection}>
+              <List.Item
+                title="Sign Out"
+                description="Log out from your account"
+                left={props => <MaterialIcons name="logout" size={24} color="#ef4444" style={styles.menuIcon} />}
+                titleStyle={[styles.menuTitle, { color: '#ef4444' }]}
+                descriptionStyle={styles.menuDescription}
+                style={styles.menuItem}
+                onPress={() => setSignOutVisible(true)}
+              />
+            </View>
+          </Surface>
+        </ScrollView>
+
+        {/* Sign Out Modal */}
+        <Portal>
+          <Modal
+            visible={signOutVisible}
+            onDismiss={() => setSignOutVisible(false)}
+            contentContainerStyle={styles.modalContent}
+          >
+            <MaterialIcons name="logout" size={48} color="#ef4444" style={styles.modalIcon} />
+            <Text style={styles.modalTitle}>Sign Out</Text>
+            <Text style={styles.modalText}>Are you sure you want to sign out from your account?</Text>
+            <View style={styles.modalButtons}>
+              <Button
+                mode="outlined"
+                onPress={() => setSignOutVisible(false)}
+                style={styles.modalButton}
+                textColor={KIWI_PRIMARY}
+              >
+                Cancel
+              </Button>
+              <Button
+                mode="contained"
+                onPress={handleSignOut}
+                style={[styles.modalButton, { backgroundColor: '#ef4444' }]}
+              >
+                Sign Out
+              </Button>
+            </View>
+          </Modal>
+        </Portal>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:'#f5f5f5',
   },
-  headerBg: {
-    backgroundColor: '#4C9A8A',
-    paddingBottom: 32,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+  gradient: {
+    flex: 1,
   },
-  headerCard: {
-    alignItems: 'center',
-    padding: 20,
+  scrollView: {
+    flex: 1,
+  },
+  header: {
     paddingTop: 60,
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginTop: 32,
-    borderRadius: 20,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    paddingBottom: 30,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+  },
+  avatarWrapper: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 60,
+    padding: 3,
   },
   avatar: {
-    backgroundColor: '#4C9A8A',
-    marginBottom: 16,
+    backgroundColor: KIWI_DARK,
+  },
+  avatarLabel: {
+    fontSize: 48,
+    color: '#ffffff',
+  },
+  userInfo: {
+    alignItems: 'center',
+    marginTop: 16,
   },
   name: {
+    fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 4,
+    color: '#ffffff',
+    marginTop: 16,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F8F7',
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 2,
-  },
-  infoIcon: {
-    marginRight: 12,
-  },
-  infoText: {
+  phoneNumber: {
     fontSize: 16,
-    color: '#333',
+    color: '#ffffff',
+    opacity: 0.8,
+    marginTop: 4,
   },
-  section: {
-    marginTop: 24,
+  menuContainer: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingTop: 20,
+    paddingHorizontal: 16,
+    marginTop: 20,
+    flex: 1,
+    elevation: 4,
+  },
+  menuSection: {
+    marginBottom: 24,
   },
   sectionTitle: {
-    paddingHorizontal: 20,
-    marginBottom: 8,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 12,
+    marginLeft: 16,
   },
   menuItem: {
-    backgroundColor: '#fff',
-    marginBottom: 1,
+    backgroundColor: '#ffffff',
+    marginBottom: 8,
+    borderRadius: 12,
+    elevation: 1,
   },
-  signOutButton: {
-    marginTop: 24,
+  menuIcon: {
+    backgroundColor: '#f3f4f6',
+    padding: 8,
+    borderRadius: 8,
+    marginRight: 8,
   },
-  signOutText: {
-    color: '#FF5C5C',
+  menuTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#1f2937',
   },
-  modal: {
-    backgroundColor: '#fff',
+  menuDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  modalContent: {
+    backgroundColor: 'white',
     padding: 24,
-    margin: 24,
+    margin: 20,
     borderRadius: 16,
     alignItems: 'center',
   },
+  modalIcon: {
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#1f2937',
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 24,
+    color: '#4b5563',
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+  },
   modalButton: {
-    marginTop: 12,
-    width: 180,
+    marginHorizontal: 8,
+    minWidth: 120,
   },
 }); 
